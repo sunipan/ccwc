@@ -1,2 +1,2 @@
 # ccwc
-A clone of the wc CLI tool
+A clone of the wc CLI tool made with Rust
