@@ -38,14 +38,14 @@ fn main() {
         count_file_lines(&args.file_name);
     }
     if args.words {
-        count_file_words();
+        count_file_words(&args.file_name);
     }
     if args.m {
         count_file_characters();
     }
 }
 
-fn count_file_bytes(file_name: &String) {
+fn count_file_bytes(file_name: &str) {
     let file_result = fs::read(file_name);
     let file = match file_result {
         Ok(file_vec) => file_vec,
@@ -57,7 +57,7 @@ fn count_file_bytes(file_name: &String) {
     println!("Bytes: {}", file.len());
 }
 
-fn count_file_lines(file_name: &String) {
+fn count_file_lines(file_name: &str) {
     let mut line_count = 0;
     let file_result = fs::File::open(file_name);
     let reader = match file_result {
@@ -75,6 +75,22 @@ fn count_file_lines(file_name: &String) {
     println!("Lines: {}", line_count);
 }
 
-fn count_file_words() {}
+fn count_file_words(file_name: &str) {
+    let mut word_count = 0;
+    let file_result = fs::File::open(file_name);
+    let reader = match file_result {
+        Ok(file) => io::BufReader::new(file),
+        Err(error) => {
+            eprintln!("Problem reading error: {:?}", error);
+            return;
+        }
+    };
+    for line in reader.lines() {
+        if let Ok(line) = line {
+            word_count += line.split_whitespace().count();
+        }
+    }
+    println!("Words: {}", word_count);
+}
 
 fn count_file_characters() {}
