@@ -1,7 +1,8 @@
 use clap::Parser;
 use std::{
-    fs,
-    io::{self, BufRead},
+    fs::read,
+    fs::File,
+    io::{self, BufRead, BufReader},
 };
 
 /// Simple program to greet a person
@@ -34,24 +35,24 @@ fn main() {
     if !args.count && !args.lines && !args.words && !args.m {
         run_default(&args.file_name);
         return;
-    }
-
-    if args.count {
-        count_file_bytes(&args.file_name);
-    }
-    if args.lines {
-        count_file_lines(&args.file_name);
-    }
-    if args.words {
-        count_file_words(&args.file_name);
-    }
-    if args.m {
-        count_file_characters(&args.file_name);
+    } else {
+        if args.count {
+            count_file_bytes(&args.file_name);
+        }
+        if args.lines {
+            count_file_lines(&args.file_name);
+        }
+        if args.words {
+            count_file_words(&args.file_name);
+        }
+        if args.m {
+            count_file_characters(&args.file_name);
+        }
     }
 }
 
 fn count_file_bytes(file_name: &str) {
-    let file_result = fs::read(file_name);
+    let file_result = read(file_name);
     let file = match file_result {
         Ok(file_vec) => file_vec,
         Err(error) => {
@@ -64,60 +65,56 @@ fn count_file_bytes(file_name: &str) {
 
 fn count_file_lines(file_name: &str) {
     let mut line_count = 0;
-    let file_result = fs::File::open(file_name);
-    let reader = match file_result {
-        Ok(file) => io::BufReader::new(file),
-        Err(error) => {
-            eprintln!("Problem reading error: {:?}", error);
-            return;
+    let reader = open_file(&file_name);
+    if let Ok(reader) = reader {
+        for line in reader.lines() {
+            if let Ok(_line) = line {
+                line_count += 1;
+            }
         }
-    };
-    for line in reader.lines() {
-        if let Ok(_line) = line {
-            line_count += 1;
-        }
+        println!("Lines: {}", line_count);
+    } else if let Err(error) = reader {
+        eprintln!("Problem reading error: {:?}", error);
     }
-    println!("Lines: {}", line_count);
 }
 
 fn count_file_words(file_name: &str) {
     let mut word_count = 0;
-    let file_result = fs::File::open(file_name);
-    let reader = match file_result {
-        Ok(file) => io::BufReader::new(file),
-        Err(error) => {
-            eprintln!("Problem reading error: {:?}", error);
-            return;
+    let reader = open_file(&file_name);
+    if let Ok(reader) = reader {
+        for line in reader.lines() {
+            if let Ok(line) = line {
+                word_count += line.split_whitespace().count();
+            }
         }
-    };
-    for line in reader.lines() {
-        if let Ok(line) = line {
-            word_count += line.split_whitespace().count();
-        }
+        println!("Words: {}", word_count);
+    } else if let Err(error) = reader {
+        eprintln!("Problem reading error: {:?}", error);
     }
-    println!("Words: {}", word_count);
 }
 
 fn count_file_characters(file_name: &str) {
     let mut char_count = 0;
-    let file_result = fs::File::open(file_name);
-    let reader = match file_result {
-        Ok(file) => io::BufReader::new(file),
-        Err(error) => {
-            eprintln!("Problem reading error: {:?}", error);
-            return;
+    let reader = open_file(&file_name);
+    if let Ok(reader) = reader {
+        for line in reader.lines() {
+            if let Ok(line) = line {
+                char_count += line.chars().count();
+            }
         }
-    };
-    for line in reader.lines() {
-        if let Ok(line) = line {
-            char_count += line.chars().count();
-        }
+        println!("Characters: {}", char_count);
+    } else if let Err(error) = reader {
+        eprintln!("Problem reading error: {:?}", error);
     }
-    println!("Characters: {}", char_count);
 }
 
 fn run_default(file_name: &str) {
     count_file_bytes(&file_name);
     count_file_lines(&file_name);
     count_file_words(&file_name);
+}
+
+fn open_file(file_name: &str) -> io::Result<BufReader<File>> {
+    let file = File::open(file_name)?;
+    Ok(BufReader::new(file))
 }
