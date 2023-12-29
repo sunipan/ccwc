@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::fs;
 
 /// Simple program to greet a person
 #[derive(Parser, Debug)]
@@ -26,9 +27,30 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
+
+    if args.count {
+        count_file_bytes(args.file_name);
+    }
+    if args.lines {
+        count_file_lines();
+    }
+    if args.words {
+        count_file_words();
+    }
+    if args.m {
+        count_file_characters();
+    }
 }
 
-fn count_file_bytes() {}
+fn count_file_bytes(file_name: String) {
+    let file_result = fs::read(file_name);
+    let file = match file_result {
+        Ok(file_vec) => file_vec,
+        Err(error) => panic!("Problem reading error: {:?}", error),
+    };
+
+    println!("Bytes: {}", file.len());
+}
 
 fn count_file_lines() {}
 
