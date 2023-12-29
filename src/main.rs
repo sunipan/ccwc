@@ -31,6 +31,11 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
+    if !args.count && !args.lines && !args.words && !args.m {
+        run_default(&args.file_name);
+        return;
+    }
+
     if args.count {
         count_file_bytes(&args.file_name);
     }
@@ -41,7 +46,7 @@ fn main() {
         count_file_words(&args.file_name);
     }
     if args.m {
-        count_file_characters();
+        count_file_characters(&args.file_name);
     }
 }
 
@@ -93,4 +98,26 @@ fn count_file_words(file_name: &str) {
     println!("Words: {}", word_count);
 }
 
-fn count_file_characters() {}
+fn count_file_characters(file_name: &str) {
+    let mut char_count = 0;
+    let file_result = fs::File::open(file_name);
+    let reader = match file_result {
+        Ok(file) => io::BufReader::new(file),
+        Err(error) => {
+            eprintln!("Problem reading error: {:?}", error);
+            return;
+        }
+    };
+    for line in reader.lines() {
+        if let Ok(line) = line {
+            char_count += line.chars().count();
+        }
+    }
+    println!("Characters: {}", char_count);
+}
+
+fn run_default(file_name: &str) {
+    count_file_bytes(&file_name);
+    count_file_lines(&file_name);
+    count_file_words(&file_name);
+}
