@@ -38,10 +38,13 @@ enum InputSource {
 fn main() {
     let args = Args::parse();
 
+    // Providing both file_name and stdin will just process the file.
     let input_source = match args.file_name {
         Some(file_name) => InputSource::File(file_name),
         None => {
             let mut content = String::new();
+            /* If no input is provided, user is able to type in their own input
+            then press Ctrl+D or Ctrl+Z to run the utility. */
             let _ = io::stdin().read_to_string(&mut content);
             InputSource::Stdin(content)
         }
