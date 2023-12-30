@@ -32,7 +32,7 @@ struct Args {
 
 enum InputSource {
     File(String),
-    Stdin,
+    Stdin(String),
 }
 
 fn main() {
@@ -40,7 +40,11 @@ fn main() {
 
     let input_source = match args.file_name {
         Some(file_name) => InputSource::File(file_name),
-        None => InputSource::Stdin,
+        None => {
+            let mut content = String::new();
+            let _ = io::stdin().read_to_string(&mut content);
+            InputSource::Stdin(content)
+        }
     };
 
     if !args.count && !args.lines && !args.words && !args.m {
@@ -80,11 +84,7 @@ fn count_file_bytes(source: &InputSource) -> io::Result<()> {
             let file = read(file_name)?;
             file.len()
         }
-        InputSource::Stdin => {
-            let mut content = Vec::new();
-            io::stdin().read_to_end(&mut content)?;
-            content.len()
-        }
+        InputSource::Stdin(content) => content.as_bytes().len(),
     };
     println!("Bytes: {}", byte_count);
     Ok(())
@@ -96,10 +96,7 @@ fn count_file_lines(source: &InputSource) -> io::Result<()> {
             let reader = open_file(&file_name)?;
             reader.lines().count()
         }
-        InputSource::Stdin => {
-            let reader = io::stdin().lock();
-            reader.lines().count()
-        }
+        InputSource::Stdin(input) => input.lines().count(),
     };
     println!("Lines: {}", line_count);
     Ok(())
@@ -116,11 +113,9 @@ fn count_file_words(source: &InputSource) -> io::Result<()> {
             }
             word_count_local
         }
-        InputSource::Stdin => {
+        InputSource::Stdin(input) => {
             let mut word_count_local = 0;
-            let reader = io::stdin().lock();
-            for line_result in reader.lines() {
-                let line = line_result?;
+            for line in input.lines() {
                 word_count_local += line.split_whitespace().count()
             }
             word_count_local
@@ -136,11 +131,7 @@ fn count_file_characters(source: &InputSource) -> io::Result<()> {
             let file = read(&file_name)?;
             num_chars(&file)
         }
-        InputSource::Stdin => {
-            let mut content = Vec::new();
-            io::stdin().read_to_end(&mut content)?;
-            num_chars(&content)
-        }
+        InputSource::Stdin(input) => num_chars(&input.as_bytes()),
     };
     println!("Characters: {}", character_count);
     Ok(())
