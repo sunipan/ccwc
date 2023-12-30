@@ -53,25 +53,25 @@ fn main() {
     } else {
         if args.count {
             if let Err(err) = count_file_bytes(&input_source) {
-                eprintln!("Problem reading error: {:?}", err);
+                eprintln!("Error: {:?}", err);
                 return;
             }
         }
         if args.lines {
             if let Err(err) = count_file_lines(&input_source) {
-                eprintln!("Problem reading error: {:?}", err);
+                eprintln!("Error: {:?}", err);
                 return;
             }
         }
         if args.words {
             if let Err(err) = count_file_words(&input_source) {
-                eprintln!("Problem reading error: {:?}", err);
+                eprintln!("Error: {:?}", err);
                 return;
             }
         }
         if args.m {
             if let Err(err) = count_file_characters(&input_source) {
-                eprintln!("Problem reading error: {:?}", err);
+                eprintln!("Error: {:?}", err);
                 return;
             }
         }
@@ -139,15 +139,15 @@ fn count_file_characters(source: &InputSource) -> io::Result<()> {
 
 fn run_default(source: &InputSource) {
     if let Err(err) = count_file_bytes(source) {
-        eprintln!("Problem reading error: {:?}", err);
+        eprintln!("Error: {:?}", err);
         return;
     }
     if let Err(err) = count_file_lines(source) {
-        eprintln!("Problem reading error: {:?}", err);
+        eprintln!("Error: {:?}", err);
         return;
     }
     if let Err(err) = count_file_words(source) {
-        eprintln!("Problem reading error: {:?}", err);
+        eprintln!("Error: {:?}", err);
         return;
     }
 }
