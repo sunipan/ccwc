@@ -38,74 +38,76 @@ fn main() {
         return;
     } else {
         if args.count {
-            count_file_bytes(&args.file_name);
+            if let Err(err) = count_file_bytes(&args.file_name) {
+                eprintln!("Problem reading error: {:?}", err);
+                return;
+            }
         }
         if args.lines {
-            count_file_lines(&args.file_name);
+            if let Err(err) = count_file_lines(&args.file_name) {
+                eprintln!("Problem reading error: {:?}", err);
+            }
         }
         if args.words {
-            count_file_words(&args.file_name);
+            if let Err(err) = count_file_words(&args.file_name) {
+                eprintln!("Problem reading error: {:?}", err);
+            }
         }
         if args.m {
-            // count_file_characters(&args.file_name);
-            let _ = count_file_characters(&args.file_name);
+            if let Err(err) = count_file_characters(&args.file_name) {
+                eprintln!("Problem reading error: {:?}", err);
+            }
         }
     }
 }
 
-fn count_file_bytes(file_name: &str) {
-    let file_result = read(file_name);
-    let file = match file_result {
-        Ok(file_vec) => file_vec,
-        Err(error) => {
-            eprintln!("Problem reading error: {:?}", error);
-            return;
-        }
-    };
+fn count_file_bytes(file_name: &str) -> io::Result<()> {
+    let file = read(file_name)?;
     println!("Bytes: {}", file.len());
+    Ok(())
 }
 
-fn count_file_lines(file_name: &str) {
-    let mut line_count = 0;
-    let reader = open_file(&file_name);
-    if let Ok(reader) = reader {
-        for line in reader.lines() {
-            if let Ok(_line) = line {
-                line_count += 1;
-            }
-        }
-        println!("Lines: {}", line_count);
-    } else if let Err(error) = reader {
-        eprintln!("Problem reading error: {:?}", error);
-    }
+fn count_file_lines(file_name: &str) -> io::Result<()> {
+    let reader = open_file(&file_name)?;
+    let line_count = reader.lines().count();
+    println!("Lines: {}", line_count);
+    Ok(())
 }
 
-fn count_file_words(file_name: &str) {
+fn count_file_words(file_name: &str) -> io::Result<()> {
     let mut word_count = 0;
-    let reader = open_file(&file_name);
-    if let Ok(reader) = reader {
-        for line in reader.lines() {
-            if let Ok(line) = line {
-                word_count += line.split_whitespace().count();
-            }
-        }
-        println!("Words: {}", word_count);
-    } else if let Err(error) = reader {
-        eprintln!("Problem reading error: {:?}", error);
+    let reader = open_file(&file_name)?;
+
+    for line_result in reader.lines() {
+        let line = line_result?;
+        word_count += line.split_whitespace().count();
     }
+
+    println!("Words: {}", word_count);
+    Ok(())
 }
 
 fn count_file_characters(file_name: &str) -> io::Result<()> {
     let file = read(&file_name)?;
     let char_count = num_chars(&file);
-    println!("Number of characters: {}", char_count);
+    println!("Characters: {}", char_count);
     Ok(())
 }
 
 fn run_default(file_name: &str) {
-    count_file_bytes(&file_name);
-    count_file_lines(&file_name);
-    count_file_words(&file_name);
+    if let Err(err) = count_file_bytes(&file_name) {
+        eprintln!("Problem reading error: {:?}", err);
+        return;
+    }
+    if let Err(err) = count_file_lines(&file_name) {
+        eprintln!("Problem reading error: {:?}", err);
+    }
+    if let Err(err) = count_file_words(&file_name) {
+        eprintln!("Problem reading error: {:?}", err);
+    }
+    if let Err(err) = count_file_characters(&file_name) {
+        eprintln!("Problem reading error: {:?}", err);
+    }
 }
 
 fn open_file(file_name: &str) -> io::Result<BufReader<File>> {
