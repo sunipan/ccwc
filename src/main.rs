@@ -1,3 +1,4 @@
+use bytecount::num_chars;
 use clap::Parser;
 use std::{
     fs::read,
@@ -46,7 +47,8 @@ fn main() {
             count_file_words(&args.file_name);
         }
         if args.m {
-            count_file_characters(&args.file_name);
+            // count_file_characters(&args.file_name);
+            let _ = count_file_characters(&args.file_name);
         }
     }
 }
@@ -93,19 +95,11 @@ fn count_file_words(file_name: &str) {
     }
 }
 
-fn count_file_characters(file_name: &str) {
-    let mut char_count = 0;
-    let reader = open_file(&file_name);
-    if let Ok(reader) = reader {
-        for line in reader.lines() {
-            if let Ok(line) = line {
-                char_count += line.chars().count();
-            }
-        }
-        println!("Characters: {}", char_count);
-    } else if let Err(error) = reader {
-        eprintln!("Problem reading error: {:?}", error);
-    }
+fn count_file_characters(file_name: &str) -> io::Result<()> {
+    let file = read(&file_name)?;
+    let char_count = num_chars(&file);
+    println!("Number of characters: {}", char_count);
+    Ok(())
 }
 
 fn run_default(file_name: &str) {
