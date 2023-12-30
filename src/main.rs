@@ -3,7 +3,7 @@ use clap::Parser;
 use std::{
     fs::read,
     fs::File,
-    io::{self, BufRead, BufReader},
+    io::{self, BufRead, BufReader, Read},
 };
 
 /// Simple program to greet a person
@@ -26,37 +26,47 @@ struct Args {
     #[arg(short)]
     m: bool,
 
-    // File to run operations on
-    file_name: String,
+    // Optional file to run operations on
+    file_name: Option<String>,
+}
+
+enum InputSource {
+    File(String),
+    Stdin,
 }
 
 fn main() {
     let args = Args::parse();
 
+    let input_source = match args.file_name {
+        Some(file_name) => InputSource::File(file_name),
+        None => InputSource::Stdin,
+    };
+
     if !args.count && !args.lines && !args.words && !args.m {
-        run_default(&args.file_name);
+        run_default(&input_source);
         return;
     } else {
         if args.count {
-            if let Err(err) = count_file_bytes(&args.file_name) {
+            if let Err(err) = count_file_bytes(&input_source) {
                 eprintln!("Problem reading error: {:?}", err);
                 return;
             }
         }
         if args.lines {
-            if let Err(err) = count_file_lines(&args.file_name) {
+            if let Err(err) = count_file_lines(&input_source) {
                 eprintln!("Problem reading error: {:?}", err);
                 return;
             }
         }
         if args.words {
-            if let Err(err) = count_file_words(&args.file_name) {
+            if let Err(err) = count_file_words(&input_source) {
                 eprintln!("Problem reading error: {:?}", err);
                 return;
             }
         }
         if args.m {
-            if let Err(err) = count_file_characters(&args.file_name) {
+            if let Err(err) = count_file_characters(&input_source) {
                 eprintln!("Problem reading error: {:?}", err);
                 return;
             }
@@ -64,49 +74,88 @@ fn main() {
     }
 }
 
-fn count_file_bytes(file_name: &str) -> io::Result<()> {
-    let file = read(file_name)?;
-    println!("Bytes: {}", file.len());
+fn count_file_bytes(source: &InputSource) -> io::Result<()> {
+    let byte_count = match source {
+        InputSource::File(file_name) => {
+            let file = read(file_name)?;
+            file.len()
+        }
+        InputSource::Stdin => {
+            let mut content = Vec::new();
+            io::stdin().read_to_end(&mut content)?;
+            content.len()
+        }
+    };
+    println!("Bytes: {}", byte_count);
     Ok(())
 }
 
-fn count_file_lines(file_name: &str) -> io::Result<()> {
-    let reader = open_file(&file_name)?;
-    let line_count = reader.lines().count();
+fn count_file_lines(source: &InputSource) -> io::Result<()> {
+    let line_count = match source {
+        InputSource::File(file_name) => {
+            let reader = open_file(&file_name)?;
+            reader.lines().count()
+        }
+        InputSource::Stdin => {
+            let reader = io::stdin().lock();
+            reader.lines().count()
+        }
+    };
     println!("Lines: {}", line_count);
     Ok(())
 }
 
-fn count_file_words(file_name: &str) -> io::Result<()> {
-    let mut word_count = 0;
-    let reader = open_file(&file_name)?;
-
-    for line_result in reader.lines() {
-        let line = line_result?;
-        word_count += line.split_whitespace().count();
-    }
-
+fn count_file_words(source: &InputSource) -> io::Result<()> {
+    let word_count = match source {
+        InputSource::File(file_name) => {
+            let mut word_count_local = 0;
+            let reader = open_file(&file_name)?;
+            for line_result in reader.lines() {
+                let line = line_result?;
+                word_count_local += line.split_whitespace().count();
+            }
+            word_count_local
+        }
+        InputSource::Stdin => {
+            let mut word_count_local = 0;
+            let reader = io::stdin().lock();
+            for line_result in reader.lines() {
+                let line = line_result?;
+                word_count_local += line.split_whitespace().count()
+            }
+            word_count_local
+        }
+    };
     println!("Words: {}", word_count);
     Ok(())
 }
 
-fn count_file_characters(file_name: &str) -> io::Result<()> {
-    let file = read(&file_name)?;
-    let char_count = num_chars(&file);
-    println!("Characters: {}", char_count);
+fn count_file_characters(source: &InputSource) -> io::Result<()> {
+    let character_count = match source {
+        InputSource::File(file_name) => {
+            let file = read(&file_name)?;
+            num_chars(&file)
+        }
+        InputSource::Stdin => {
+            let mut content = Vec::new();
+            io::stdin().read_to_end(&mut content)?;
+            num_chars(&content)
+        }
+    };
+    println!("Characters: {}", character_count);
     Ok(())
 }
 
-fn run_default(file_name: &str) {
-    if let Err(err) = count_file_bytes(&file_name) {
+fn run_default(source: &InputSource) {
+    if let Err(err) = count_file_bytes(source) {
         eprintln!("Problem reading error: {:?}", err);
         return;
     }
-    if let Err(err) = count_file_lines(&file_name) {
+    if let Err(err) = count_file_lines(source) {
         eprintln!("Problem reading error: {:?}", err);
         return;
     }
-    if let Err(err) = count_file_words(&file_name) {
+    if let Err(err) = count_file_words(source) {
         eprintln!("Problem reading error: {:?}", err);
         return;
     }
