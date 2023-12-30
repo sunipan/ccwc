@@ -46,16 +46,19 @@ fn main() {
         if args.lines {
             if let Err(err) = count_file_lines(&args.file_name) {
                 eprintln!("Problem reading error: {:?}", err);
+                return;
             }
         }
         if args.words {
             if let Err(err) = count_file_words(&args.file_name) {
                 eprintln!("Problem reading error: {:?}", err);
+                return;
             }
         }
         if args.m {
             if let Err(err) = count_file_characters(&args.file_name) {
                 eprintln!("Problem reading error: {:?}", err);
+                return;
             }
         }
     }
@@ -101,12 +104,11 @@ fn run_default(file_name: &str) {
     }
     if let Err(err) = count_file_lines(&file_name) {
         eprintln!("Problem reading error: {:?}", err);
+        return;
     }
     if let Err(err) = count_file_words(&file_name) {
         eprintln!("Problem reading error: {:?}", err);
-    }
-    if let Err(err) = count_file_characters(&file_name) {
-        eprintln!("Problem reading error: {:?}", err);
+        return;
     }
 }
 
