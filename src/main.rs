@@ -163,50 +163,32 @@ fn open_file(file_name: &str) -> io::Result<BufReader<File>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Write;
-    use tempfile::NamedTempFile;
 
     #[test]
     fn test_count_file_bytes() -> io::Result<()> {
-        let mut file = NamedTempFile::new()?;
-        write!(file, "Hello, world!")?;
-
-        let file_name = file.path().to_str().unwrap().to_string();
-        let source = InputSource::File(file_name);
-        assert_eq!(count_file_bytes(&source)?, 13); // including newline
+        let source = InputSource::File("test.txt".into());
+        assert_eq!(count_file_bytes(&source)?, 342190); // including newline
         Ok(())
     }
 
     #[test]
     fn test_count_file_lines() -> io::Result<()> {
-        let mut file = NamedTempFile::new()?;
-        write!(file, "Hello\nworld\n!")?;
-
-        let file_name = file.path().to_str().unwrap().to_string();
-        let source = InputSource::File(file_name);
-        assert_eq!(count_file_lines(&source)?, 3);
+        let source = InputSource::File("test.txt".into());
+        assert_eq!(count_file_lines(&source)?, 7145);
         Ok(())
     }
 
     #[test]
     fn test_count_file_words() -> io::Result<()> {
-        let mut file = NamedTempFile::new()?;
-        write!(file, "Hello world!")?;
-
-        let file_name = file.path().to_str().unwrap().to_string();
-        let source = InputSource::File(file_name);
-        assert_eq!(count_file_words(&source)?, 2);
+        let source = InputSource::File("test.txt".into());
+        assert_eq!(count_file_words(&source)?, 58164);
         Ok(())
     }
 
     #[test]
     fn test_count_file_characters() -> io::Result<()> {
-        let mut file = NamedTempFile::new()?;
-        write!(file, "Hello world!")?;
-
-        let file_name = file.path().to_str().unwrap().to_string();
-        let source = InputSource::File(file_name);
-        assert_eq!(count_file_characters(&source)?, 12);
+        let source = InputSource::File("test.txt".into());
+        assert_eq!(count_file_characters(&source)?, 339292);
         Ok(())
     }
 }
