@@ -81,7 +81,7 @@ fn main() {
     }
 }
 
-fn count_file_bytes(source: &InputSource) -> io::Result<()> {
+fn count_file_bytes(source: &InputSource) -> io::Result<usize> {
     let byte_count = match source {
         InputSource::File(file_name) => {
             let file = read(file_name)?;
@@ -90,10 +90,10 @@ fn count_file_bytes(source: &InputSource) -> io::Result<()> {
         InputSource::Stdin(content) => content.as_bytes().len(),
     };
     println!("Bytes: {}", byte_count);
-    Ok(())
+    Ok(byte_count)
 }
 
-fn count_file_lines(source: &InputSource) -> io::Result<()> {
+fn count_file_lines(source: &InputSource) -> io::Result<usize> {
     let line_count = match source {
         InputSource::File(file_name) => {
             let reader = open_file(&file_name)?;
@@ -102,10 +102,10 @@ fn count_file_lines(source: &InputSource) -> io::Result<()> {
         InputSource::Stdin(input) => input.lines().count(),
     };
     println!("Lines: {}", line_count);
-    Ok(())
+    Ok(line_count)
 }
 
-fn count_file_words(source: &InputSource) -> io::Result<()> {
+fn count_file_words(source: &InputSource) -> io::Result<usize> {
     let word_count = match source {
         InputSource::File(file_name) => {
             let mut word_count_local = 0;
@@ -125,10 +125,10 @@ fn count_file_words(source: &InputSource) -> io::Result<()> {
         }
     };
     println!("Words: {}", word_count);
-    Ok(())
+    Ok(word_count)
 }
 
-fn count_file_characters(source: &InputSource) -> io::Result<()> {
+fn count_file_characters(source: &InputSource) -> io::Result<usize> {
     let character_count = match source {
         InputSource::File(file_name) => {
             let file = read(&file_name)?;
@@ -137,7 +137,7 @@ fn count_file_characters(source: &InputSource) -> io::Result<()> {
         InputSource::Stdin(input) => num_chars(&input.as_bytes()),
     };
     println!("Characters: {}", character_count);
-    Ok(())
+    Ok(character_count)
 }
 
 fn run_default(source: &InputSource) {
@@ -158,4 +158,55 @@ fn run_default(source: &InputSource) {
 fn open_file(file_name: &str) -> io::Result<BufReader<File>> {
     let file = File::open(file_name)?;
     Ok(BufReader::new(file))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_count_file_bytes() -> io::Result<()> {
+        let mut file = NamedTempFile::new()?;
+        write!(file, "Hello, world!")?;
+
+        let file_name = file.path().to_str().unwrap().to_string();
+        let source = InputSource::File(file_name);
+        assert_eq!(count_file_bytes(&source)?, 13); // including newline
+        Ok(())
+    }
+
+    #[test]
+    fn test_count_file_lines() -> io::Result<()> {
+        let mut file = NamedTempFile::new()?;
+        write!(file, "Hello\nworld\n!")?;
+
+        let file_name = file.path().to_str().unwrap().to_string();
+        let source = InputSource::File(file_name);
+        assert_eq!(count_file_lines(&source)?, 3);
+        Ok(())
+    }
+
+    #[test]
+    fn test_count_file_words() -> io::Result<()> {
+        let mut file = NamedTempFile::new()?;
+        write!(file, "Hello world!")?;
+
+        let file_name = file.path().to_str().unwrap().to_string();
+        let source = InputSource::File(file_name);
+        assert_eq!(count_file_words(&source)?, 2);
+        Ok(())
+    }
+
+    #[test]
+    fn test_count_file_characters() -> io::Result<()> {
+        let mut file = NamedTempFile::new()?;
+        write!(file, "Hello world!")?;
+
+        let file_name = file.path().to_str().unwrap().to_string();
+        let source = InputSource::File(file_name);
+        assert_eq!(count_file_characters(&source)?, 12);
+        Ok(())
+    }
 }
