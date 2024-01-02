@@ -42,8 +42,7 @@ fn main() {
         Some(file_name) => InputSource::File(file_name),
         None => {
             let mut content = String::new();
-            /* If no input is provided, user is able to type in their own input
-            then press Ctrl+D (sometimes twice). */
+            /* If no input is provided, user is able to type in their own input then press Ctrl+D (sometimes twice). */
             let _ = io::stdin().read_to_string(&mut content);
             InputSource::Stdin(content)
         }
